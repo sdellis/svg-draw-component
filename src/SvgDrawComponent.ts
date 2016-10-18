@@ -42,6 +42,9 @@ namespace IIIFComponents {
               case SubjectType.OPENSEADRAGON.toString():
                   this.subject = new OSDSubject(this.options.subject);
                   break;
+              case SubjectType.GIF.toString():
+                  this.subject = new GifSubject(this.options.subject);
+                  break;
               case SubjectType.IMAGE.toString():
                   this.subject = new ImageSubject(this.options.subject);
                   break;
@@ -187,7 +190,7 @@ namespace IIIFComponents {
             $('.toolbar-layers').toggleClass('minToolbar');
           });
 
-          $('.toolbar-layers input').on( 'click', function(e) {
+          $('.toolbar-layers').on( 'click', 'input', function(e) {
             var target = (<HTMLInputElement>e.target);
             switch (e.target.className) {
               case 'eye_btn':
@@ -199,7 +202,7 @@ namespace IIIFComponents {
             }
           });
 
-          $('.toolbar-layers span').on( 'click', function(e) {
+          $('.toolbar-layers').on( 'click', 'span', function(e) {
               var target = (<HTMLInputElement>e.target);
               // clear select class
               $('.toolbar-layers li').removeClass('selected');
@@ -292,7 +295,11 @@ namespace IIIFComponents {
               this.svgDrawPaper = new paper.PaperScope();
           	  this.svgDrawPaper.setup(el);
 
+              // todo: this should return array of layers it creates
+              //       and optionally add them to LayerTools
               this.subject.addBackground(this.svgDrawPaper);
+
+              // todo: this code should go into the separate Subject providers
               this.svgDrawPaper.project.activeLayer.name = 'bg';
               var bgLayer = this.svgDrawPaper.project.activeLayer;
               bgLayer.locked = true;

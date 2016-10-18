@@ -1,5 +1,61 @@
 // svg-draw-component v1.0.1 https://github.com/sdellis/svg-draw-component#readme
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.svgDrawComponent = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var IIIFComponents;
+(function (IIIFComponents) {
+    var GifSubject = (function () {
+        function GifSubject(target) {
+            this.imgID = target;
+            this.$wrapper = $('<div><canvas id="canvas-1" class="paper" resize="true"></canvas></div>');
+        }
+        GifSubject.prototype.freeze = function () {
+            console.log("Image frozen!");
+        };
+        GifSubject.prototype.addBackground = function (svgDrawPaper) {
+            var _this = this;
+            var sup1 = new SuperGif({ gif: document.getElementById(this.imgID), auto_play: 0 });
+            sup1.load(function () {
+                var c = sup1.get_canvas();
+                var rasters = [];
+                var frame_num = sup1.get_length();
+                $('.paper').css('width', c.width + 'px');
+                $('.paper').css('height', c.height + 'px');
+                svgDrawPaper.view.viewSize.width = c.width;
+                svgDrawPaper.view.viewSize.height = c.height;
+                function rasterLoaded(raster, i) {
+                    var layer = new svgDrawPaper.Layer({ 'name': 'frame_' + i, insert: false });
+                    var $layerTool;
+                    svgDrawPaper.project.addLayer(layer);
+                    layer.addChild(raster);
+                    raster.position = svgDrawPaper.view.center;
+                    raster.locked = true;
+                    if (i > 0) {
+                        $layerTool = $('<li id="' + layer.name + '" class="tool-btn"><input id="' + layer.name + '-eye_btn" class="eye_btn" aria-label="Layer Visibility Toggle" type="checkbox" name="' + layer.name + '"><label for="' + layer.name + '-eye_btn"> <i class="fa fa-fw fa-eye" aria-hidden="true" title="Toggle layer visibility?"></i></label><input id="' + layer.name + '-lock_btn" class="lock_btn" aria-label="Lock Layer Toggle" type="checkbox" name="' + layer.name + '"><label for="' + layer.name + '-lock_btn"><i class="fa fa-fw fa-lock" aria-hidden="true" title="Toggle layer lock?"></i></label><span>' + layer.name + '</span></li>');
+                        layer.visible = false;
+                    }
+                    else {
+                        $layerTool = $('<li id="' + layer.name + '" class="tool-btn selected"><input id="' + layer.name + '-eye_btn" class="eye_btn" aria-label="Layer Visibility Toggle" type="checkbox" name="' + layer.name + '" checked><label for="' + layer.name + '-eye_btn"> <i class="fa fa-fw fa-eye" aria-hidden="true" title="Toggle layer visibility?"></i></label><input id="' + layer.name + '-lock_btn" class="lock_btn" aria-label="Lock Layer Toggle" type="checkbox" name="' + layer.name + '"><label for="' + layer.name + '-lock_btn"><i class="fa fa-fw fa-lock" aria-hidden="true" title="Toggle layer lock?"></i></label><span>' + layer.name + '</span></li>');
+                        layer.activate();
+                    }
+                    $('.toolbar-layers .tools').append($layerTool);
+                }
+                for (var i = 0; i < frame_num; i++) {
+                    sup1.move_to(i);
+                    c = sup1.get_canvas();
+                    frames[i] = c.toDataURL("image/png");
+                    rasters[i] = new svgDrawPaper.Raster(c.toDataURL("image/png"));
+                    rasters[i].on('load', rasterLoaded(rasters[i], i));
+                }
+                $('.jsgif > canvas').hide();
+            });
+        };
+        GifSubject.prototype.getSubjectType = function () {
+            return IIIFComponents.SubjectType.GIF;
+        };
+        return GifSubject;
+    }());
+    IIIFComponents.GifSubject = GifSubject;
+})(IIIFComponents || (IIIFComponents = {}));
+
 
 
 
@@ -144,6 +200,7 @@ var IIIFComponents;
             _super.apply(this, arguments);
         }
         SubjectType.DEFAULT = new SubjectType("");
+        SubjectType.GIF = new SubjectType("gif");
         SubjectType.IMAGE = new SubjectType("image");
         SubjectType.OPENSEADRAGON = new SubjectType("openseadragon");
         return SubjectType;
@@ -181,6 +238,9 @@ var IIIFComponents;
             switch (this.options.subjectType.toString()) {
                 case IIIFComponents.SubjectType.OPENSEADRAGON.toString():
                     this.subject = new IIIFComponents.OSDSubject(this.options.subject);
+                    break;
+                case IIIFComponents.SubjectType.GIF.toString():
+                    this.subject = new IIIFComponents.GifSubject(this.options.subject);
                     break;
                 case IIIFComponents.SubjectType.IMAGE.toString():
                     this.subject = new IIIFComponents.ImageSubject(this.options.subject);
@@ -312,7 +372,7 @@ var IIIFComponents;
             $('.ctrl-layers').on("dblclick", function () {
                 $('.toolbar-layers').toggleClass('minToolbar');
             });
-            $('.toolbar-layers input').on('click', function (e) {
+            $('.toolbar-layers').on('click', 'input', function (e) {
                 var target = e.target;
                 switch (e.target.className) {
                     case 'eye_btn':
@@ -323,7 +383,7 @@ var IIIFComponents;
                         break;
                 }
             });
-            $('.toolbar-layers span').on('click', function (e) {
+            $('.toolbar-layers').on('click', 'span', function (e) {
                 var target = e.target;
                 // clear select class
                 $('.toolbar-layers li').removeClass('selected');
@@ -403,7 +463,10 @@ var IIIFComponents;
             var _this = this;
             this.svgDrawPaper = new paper.PaperScope();
             this.svgDrawPaper.setup(el);
+            // todo: this should return array of layers it creates
+            //       and optionally add them to LayerTools
             this.subject.addBackground(this.svgDrawPaper);
+            // todo: this code should go into the separate Subject providers
             this.svgDrawPaper.project.activeLayer.name = 'bg';
             var bgLayer = this.svgDrawPaper.project.activeLayer;
             bgLayer.locked = true;

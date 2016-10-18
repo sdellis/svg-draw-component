@@ -1,4 +1,18 @@
 // svg-draw-component v1.0.1 https://github.com/sdellis/svg-draw-component#readme
+declare var paper: any;
+declare var SuperGif: any;
+declare namespace IIIFComponents {
+    class GifSubject implements ISubject {
+        raster: any;
+        $wrapper: JQuery;
+        private imgID;
+        constructor(target: any);
+        freeze(): void;
+        addBackground(svgDrawPaper: any): void;
+        getSubjectType(): SubjectType;
+    }
+}
+
 declare namespace IIIFComponents {
     interface ISubject {
         $wrapper: JQuery;
@@ -76,6 +90,7 @@ declare namespace IIIFComponents {
 declare namespace IIIFComponents {
     class SubjectType extends StringValue {
         static DEFAULT: SubjectType;
+        static GIF: SubjectType;
         static IMAGE: SubjectType;
         static OPENSEADRAGON: SubjectType;
     }
