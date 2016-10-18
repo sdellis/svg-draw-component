@@ -16,6 +16,7 @@ var IIIFComponents;
             sup1.load(function () {
                 console.log('oh hey, now the gif is loaded');
                 var c = sup1.get_canvas();
+                var frames = [];
                 var rasters = [];
                 var frame_num = sup1.get_length();
                 $('.paper').css('width', c.width + 'px');
@@ -29,18 +30,10 @@ var IIIFComponents;
                     raster.position = svgDrawPaper.view.center;
                     layer.visible = false;
                 }
-                /*
-                function loadRaster(num){
-
-                }
-
-                sup1.move_to(0);
-                c = sup1.get_canvas();
-                loadRaster(0);
-                */
                 for (var i = 0; i < frame_num; i++) {
                     sup1.move_to(i);
                     c = sup1.get_canvas();
+                    frames[i] = c.toDataURL("image/png");
                     rasters[i] = new svgDrawPaper.Raster(c.toDataURL("image/png"));
                     rasters[i].on('load', rasterLoaded(rasters[i], i));
                 }

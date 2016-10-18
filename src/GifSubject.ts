@@ -23,7 +23,6 @@ namespace IIIFComponents {
             var sup1 = new SuperGif({ gif: document.getElementById(this.imgID), auto_play: 0 } );
 
             sup1.load(function(){
-                console.log('oh hey, now the gif is loaded');
                 var c = sup1.get_canvas();
 
                 var rasters = [];
@@ -42,19 +41,10 @@ namespace IIIFComponents {
                    layer.visible = false;
                 }
 
-                /*
-                function loadRaster(num){
-
-                }
-
-                sup1.move_to(0);
-                c = sup1.get_canvas();
-                loadRaster(0);
-                */
-
                 for (var i = 0; i < frame_num; i++) {
                     sup1.move_to(i);
                     c = sup1.get_canvas();
+                    frames[i] = c.toDataURL("image/png");
                     rasters[i] = new svgDrawPaper.Raster(c.toDataURL("image/png"));
                     rasters[i].on('load', rasterLoaded(rasters[i],i));
                 }

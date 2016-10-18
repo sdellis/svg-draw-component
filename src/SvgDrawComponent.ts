@@ -295,7 +295,11 @@ namespace IIIFComponents {
               this.svgDrawPaper = new paper.PaperScope();
           	  this.svgDrawPaper.setup(el);
 
+              // todo: this should return array of layers it creates
+              //       and optionally add them to LayerTools
               this.subject.addBackground(this.svgDrawPaper);
+
+              // todo: this code should go into the separate Subject providers
               this.svgDrawPaper.project.activeLayer.name = 'bg';
               var bgLayer = this.svgDrawPaper.project.activeLayer;
               bgLayer.locked = true;
