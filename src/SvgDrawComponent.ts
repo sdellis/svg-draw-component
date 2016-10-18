@@ -42,6 +42,9 @@ namespace IIIFComponents {
               case SubjectType.OPENSEADRAGON.toString():
                   this.subject = new OSDSubject(this.options.subject);
                   break;
+              case SubjectType.GIF.toString():
+                  this.subject = new GifSubject(this.options.subject);
+                  break;
               case SubjectType.IMAGE.toString():
                   this.subject = new ImageSubject(this.options.subject);
                   break;
