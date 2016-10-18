@@ -190,7 +190,7 @@ namespace IIIFComponents {
             $('.toolbar-layers').toggleClass('minToolbar');
           });
 
-          $('.toolbar-layers input').on( 'click', function(e) {
+          $('.toolbar-layers').on( 'click', 'input', function(e) {
             var target = (<HTMLInputElement>e.target);
             switch (e.target.className) {
               case 'eye_btn':
@@ -202,7 +202,7 @@ namespace IIIFComponents {
             }
           });
 
-          $('.toolbar-layers span').on( 'click', function(e) {
+          $('.toolbar-layers').on( 'click', 'span', function(e) {
               var target = (<HTMLInputElement>e.target);
               // clear select class
               $('.toolbar-layers li').removeClass('selected');

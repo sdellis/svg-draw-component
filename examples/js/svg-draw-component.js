@@ -14,9 +14,7 @@ var IIIFComponents;
             var _this = this;
             var sup1 = new SuperGif({ gif: document.getElementById(this.imgID), auto_play: 0 });
             sup1.load(function () {
-                console.log('oh hey, now the gif is loaded');
                 var c = sup1.get_canvas();
-                var frames = [];
                 var rasters = [];
                 var frame_num = sup1.get_length();
                 $('.paper').css('width', c.width + 'px');
@@ -25,10 +23,20 @@ var IIIFComponents;
                 svgDrawPaper.view.viewSize.height = c.height;
                 function rasterLoaded(raster, i) {
                     var layer = new svgDrawPaper.Layer({ 'name': 'frame_' + i, insert: false });
+                    var $layerTool;
                     svgDrawPaper.project.addLayer(layer);
                     layer.addChild(raster);
                     raster.position = svgDrawPaper.view.center;
-                    layer.visible = false;
+                    raster.locked = true;
+                    if (i > 0) {
+                        $layerTool = $('<li id="' + layer.name + '" class="tool-btn"><input id="' + layer.name + '-eye_btn" class="eye_btn" aria-label="Layer Visibility Toggle" type="checkbox" name="' + layer.name + '"><label for="' + layer.name + '-eye_btn"> <i class="fa fa-fw fa-eye" aria-hidden="true" title="Toggle layer visibility?"></i></label><input id="' + layer.name + '-lock_btn" class="lock_btn" aria-label="Lock Layer Toggle" type="checkbox" name="' + layer.name + '"><label for="' + layer.name + '-lock_btn"><i class="fa fa-fw fa-lock" aria-hidden="true" title="Toggle layer lock?"></i></label><span>' + layer.name + '</span></li>');
+                        layer.visible = false;
+                    }
+                    else {
+                        $layerTool = $('<li id="' + layer.name + '" class="tool-btn selected"><input id="' + layer.name + '-eye_btn" class="eye_btn" aria-label="Layer Visibility Toggle" type="checkbox" name="' + layer.name + '" checked><label for="' + layer.name + '-eye_btn"> <i class="fa fa-fw fa-eye" aria-hidden="true" title="Toggle layer visibility?"></i></label><input id="' + layer.name + '-lock_btn" class="lock_btn" aria-label="Lock Layer Toggle" type="checkbox" name="' + layer.name + '"><label for="' + layer.name + '-lock_btn"><i class="fa fa-fw fa-lock" aria-hidden="true" title="Toggle layer lock?"></i></label><span>' + layer.name + '</span></li>');
+                        layer.activate();
+                    }
+                    $('.toolbar-layers .tools').append($layerTool);
                 }
                 for (var i = 0; i < frame_num; i++) {
                     sup1.move_to(i);
@@ -37,6 +45,7 @@ var IIIFComponents;
                     rasters[i] = new svgDrawPaper.Raster(c.toDataURL("image/png"));
                     rasters[i].on('load', rasterLoaded(rasters[i], i));
                 }
+                $('.jsgif > canvas').hide();
             });
         };
         GifSubject.prototype.getSubjectType = function () {
@@ -363,7 +372,7 @@ var IIIFComponents;
             $('.ctrl-layers').on("dblclick", function () {
                 $('.toolbar-layers').toggleClass('minToolbar');
             });
-            $('.toolbar-layers input').on('click', function (e) {
+            $('.toolbar-layers').on('click', 'input', function (e) {
                 var target = e.target;
                 switch (e.target.className) {
                     case 'eye_btn':
@@ -374,7 +383,7 @@ var IIIFComponents;
                         break;
                 }
             });
-            $('.toolbar-layers span').on('click', function (e) {
+            $('.toolbar-layers').on('click', 'span', function (e) {
                 var target = e.target;
                 // clear select class
                 $('.toolbar-layers li').removeClass('selected');
@@ -454,7 +463,10 @@ var IIIFComponents;
             var _this = this;
             this.svgDrawPaper = new paper.PaperScope();
             this.svgDrawPaper.setup(el);
+            // todo: this should return array of layers it creates
+            //       and optionally add them to LayerTools
             this.subject.addBackground(this.svgDrawPaper);
+            // todo: this code should go into the separate Subject providers
             this.svgDrawPaper.project.activeLayer.name = 'bg';
             var bgLayer = this.svgDrawPaper.project.activeLayer;
             bgLayer.locked = true;
