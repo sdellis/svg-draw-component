@@ -20,6 +20,7 @@ namespace IIIFComponents {
         public addBackground(svgDrawPaper): void {
             var _this = this;
             var sup1 = new SuperGif({ gif: document.getElementById(this.imgID), auto_play: 0 } );
+            var singleDrawLayer = true; // todo: make this an option that can be passed in
 
             sup1.load(function(){
                 var c = sup1.get_canvas();
@@ -40,14 +41,29 @@ namespace IIIFComponents {
                    raster.locked = true;
 
                    if(i > 0){
-                       $layerTool = $('<li id="'+ layer.name +'" class="tool-btn"><input id="'+ layer.name +'-eye_btn" class="eye_btn" aria-label="Layer Visibility Toggle" type="checkbox" name="'+ layer.name +'"><label for="'+ layer.name +'-eye_btn"> <i class="fa fa-fw fa-eye" aria-hidden="true" title="Toggle layer visibility?"></i></label><input id="'+ layer.name +'-lock_btn" class="lock_btn" aria-label="Lock Layer Toggle" type="checkbox" name="'+ layer.name +'"><label for="'+ layer.name +'-lock_btn"><i class="fa fa-fw fa-lock" aria-hidden="true" title="Toggle layer lock?"></i></label><span>'+ layer.name +'</span></li>');
+                       $layerTool = '<li id="'+ layer.name +'" class="tool-btn"><input id="'+ layer.name +'-eye_btn" class="eye_btn" aria-label="Layer Visibility Toggle" type="checkbox" name="'+ layer.name +'"><label for="'+ layer.name +'-eye_btn"> <i class="fa fa-fw fa-eye" aria-hidden="true" title="Toggle layer visibility?"></i></label>' +
+                       '<input id="'+ layer.name +'-lock_btn" class="lock_btn" aria-label="Lock Layer Toggle" type="checkbox" name="'+ layer.name +'"><label for="'+ layer.name +'-lock_btn"><i class="fa fa-fw fa-lock" aria-hidden="true" title="Toggle layer lock?"></i></label>';
+                       if(singleDrawLayer){
+                           $layerTool += '<input id="'+ layer.name +'-camera_btn" class="camera_btn" aria-label="Take Snapshot of Drawing Layer" type="checkbox" name="'+ layer.name +'"><label for="'+ layer.name +'-camera_btn"><i class="fa fa-fw fa-camera" aria-hidden="true" title="Snapshot Drawing to Frame"></i></label>';
+                       }
+                       $layerTool += '<span>'+ layer.name +'</span></li>';
                        layer.visible = false;
                    } else {
-                       $layerTool = $('<li id="'+ layer.name +'" class="tool-btn selected"><input id="'+ layer.name +'-eye_btn" class="eye_btn" aria-label="Layer Visibility Toggle" type="checkbox" name="'+ layer.name +'" checked><label for="'+ layer.name +'-eye_btn"> <i class="fa fa-fw fa-eye" aria-hidden="true" title="Toggle layer visibility?"></i></label><input id="'+ layer.name +'-lock_btn" class="lock_btn" aria-label="Lock Layer Toggle" type="checkbox" name="'+ layer.name +'"><label for="'+ layer.name +'-lock_btn"><i class="fa fa-fw fa-lock" aria-hidden="true" title="Toggle layer lock?"></i></label><span>'+ layer.name +'</span></li>');
-                       layer.activate();
+                       $layerTool = '<li id="'+ layer.name +'" class="tool-btn selected"><input id="'+ layer.name +'-eye_btn" class="eye_btn" aria-label="Layer Visibility Toggle" type="checkbox" name="'+ layer.name +'" checked><label for="'+ layer.name +'-eye_btn"> <i class="fa fa-fw fa-eye" aria-hidden="true" title="Toggle layer visibility?"></i></label>' +
+                       '<input id="'+ layer.name +'-lock_btn" class="lock_btn" aria-label="Lock Layer Toggle" type="checkbox" name="'+ layer.name +'"><label for="'+ layer.name +'-lock_btn"><i class="fa fa-fw fa-lock" aria-hidden="true" title="Toggle layer lock?"></i></label>';
+                       if(singleDrawLayer){
+                           $layerTool += '<input id="'+ layer.name +'-camera_btn" class="camera_btn" aria-label="Take Snapshot of Drawing Layer" type="checkbox" name="'+ layer.name +'"><label for="'+ layer.name +'-camera_btn"><i class="fa fa-fw fa-camera" aria-hidden="true" title="Snapshot Drawing to Frame"></i></label>';
+                       }
+                       $layerTool += '<span>'+ layer.name +'</span></li>';
+                       if(!singleDrawLayer){
+                           layer.activate();
+                       }
+
                    }
 
+                   $layerTool = $($layerTool);
                    $('.toolbar-layers .tools').append($layerTool);
+
                 }
 
                 for (var i = 0; i < frame_num; i++) {
@@ -59,6 +75,18 @@ namespace IIIFComponents {
                 }
 
                 $('.jsgif > canvas').hide();
+
+                if(singleDrawLayer){
+                    svgDrawPaper.project.layers['draw'].bringToFront();
+                    svgDrawPaper.project.layers['draw'].activate();
+                }
+
+                /*
+                if(!singleDrawLayer){
+                    var drawLayer = new svgDrawPaper.Layer({'name': 'drawLayer'});
+                    drawLayer.activate();
+                }
+                */
 
             });
 

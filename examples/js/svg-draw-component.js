@@ -13,6 +13,7 @@ var IIIFComponents;
         GifSubject.prototype.addBackground = function (svgDrawPaper) {
             var _this = this;
             var sup1 = new SuperGif({ gif: document.getElementById(this.imgID), auto_play: 0 });
+            var singleDrawLayer = true; // todo: make this an option that can be passed in
             sup1.load(function () {
                 var c = sup1.get_canvas();
                 var rasters = [];
@@ -29,13 +30,26 @@ var IIIFComponents;
                     raster.position = svgDrawPaper.view.center;
                     raster.locked = true;
                     if (i > 0) {
-                        $layerTool = $('<li id="' + layer.name + '" class="tool-btn"><input id="' + layer.name + '-eye_btn" class="eye_btn" aria-label="Layer Visibility Toggle" type="checkbox" name="' + layer.name + '"><label for="' + layer.name + '-eye_btn"> <i class="fa fa-fw fa-eye" aria-hidden="true" title="Toggle layer visibility?"></i></label><input id="' + layer.name + '-lock_btn" class="lock_btn" aria-label="Lock Layer Toggle" type="checkbox" name="' + layer.name + '"><label for="' + layer.name + '-lock_btn"><i class="fa fa-fw fa-lock" aria-hidden="true" title="Toggle layer lock?"></i></label><span>' + layer.name + '</span></li>');
+                        $layerTool = '<li id="' + layer.name + '" class="tool-btn"><input id="' + layer.name + '-eye_btn" class="eye_btn" aria-label="Layer Visibility Toggle" type="checkbox" name="' + layer.name + '"><label for="' + layer.name + '-eye_btn"> <i class="fa fa-fw fa-eye" aria-hidden="true" title="Toggle layer visibility?"></i></label>' +
+                            '<input id="' + layer.name + '-lock_btn" class="lock_btn" aria-label="Lock Layer Toggle" type="checkbox" name="' + layer.name + '"><label for="' + layer.name + '-lock_btn"><i class="fa fa-fw fa-lock" aria-hidden="true" title="Toggle layer lock?"></i></label>';
+                        if (singleDrawLayer) {
+                            $layerTool += '<input id="' + layer.name + '-camera_btn" class="camera_btn" aria-label="Take Snapshot of Drawing Layer" type="checkbox" name="' + layer.name + '"><label for="' + layer.name + '-camera_btn"><i class="fa fa-fw fa-camera" aria-hidden="true" title="Snapshot Drawing to Frame"></i></label>';
+                        }
+                        $layerTool += '<span>' + layer.name + '</span></li>';
                         layer.visible = false;
                     }
                     else {
-                        $layerTool = $('<li id="' + layer.name + '" class="tool-btn selected"><input id="' + layer.name + '-eye_btn" class="eye_btn" aria-label="Layer Visibility Toggle" type="checkbox" name="' + layer.name + '" checked><label for="' + layer.name + '-eye_btn"> <i class="fa fa-fw fa-eye" aria-hidden="true" title="Toggle layer visibility?"></i></label><input id="' + layer.name + '-lock_btn" class="lock_btn" aria-label="Lock Layer Toggle" type="checkbox" name="' + layer.name + '"><label for="' + layer.name + '-lock_btn"><i class="fa fa-fw fa-lock" aria-hidden="true" title="Toggle layer lock?"></i></label><span>' + layer.name + '</span></li>');
-                        layer.activate();
+                        $layerTool = '<li id="' + layer.name + '" class="tool-btn selected"><input id="' + layer.name + '-eye_btn" class="eye_btn" aria-label="Layer Visibility Toggle" type="checkbox" name="' + layer.name + '" checked><label for="' + layer.name + '-eye_btn"> <i class="fa fa-fw fa-eye" aria-hidden="true" title="Toggle layer visibility?"></i></label>' +
+                            '<input id="' + layer.name + '-lock_btn" class="lock_btn" aria-label="Lock Layer Toggle" type="checkbox" name="' + layer.name + '"><label for="' + layer.name + '-lock_btn"><i class="fa fa-fw fa-lock" aria-hidden="true" title="Toggle layer lock?"></i></label>';
+                        if (singleDrawLayer) {
+                            $layerTool += '<input id="' + layer.name + '-camera_btn" class="camera_btn" aria-label="Take Snapshot of Drawing Layer" type="checkbox" name="' + layer.name + '"><label for="' + layer.name + '-camera_btn"><i class="fa fa-fw fa-camera" aria-hidden="true" title="Snapshot Drawing to Frame"></i></label>';
+                        }
+                        $layerTool += '<span>' + layer.name + '</span></li>';
+                        if (!singleDrawLayer) {
+                            layer.activate();
+                        }
                     }
+                    $layerTool = $($layerTool);
                     $('.toolbar-layers .tools').append($layerTool);
                 }
                 for (var i = 0; i < frame_num; i++) {
@@ -46,6 +60,16 @@ var IIIFComponents;
                     rasters[i].on('load', rasterLoaded(rasters[i], i));
                 }
                 $('.jsgif > canvas').hide();
+                if (singleDrawLayer) {
+                    svgDrawPaper.project.layers['draw'].bringToFront();
+                    svgDrawPaper.project.layers['draw'].activate();
+                }
+                /*
+                if(!singleDrawLayer){
+                    var drawLayer = new svgDrawPaper.Layer({'name': 'drawLayer'});
+                    drawLayer.activate();
+                }
+                */
             });
         };
         GifSubject.prototype.getSubjectType = function () {
@@ -267,6 +291,24 @@ var IIIFComponents;
         SvgDrawComponent.prototype.debug = function () {
             this._emit(SvgDrawComponent.Events.DEBUG, this.options.subjectType);
         };
+        SvgDrawComponent.prototype.takeSnapshot = function (layer_name) {
+            var payload = {};
+            var $layer_svg = $("<svg xmlns='http://www.w3.org/2000/svg'/>");
+            // 1) copy all layer children from draw layer to this layer and lock all children
+            this.svgDrawPaper.project.layers[layer_name].copyContent(this.svgDrawPaper.project.layers['draw']);
+            var children = this.svgDrawPaper.project.layers[layer_name].children.map(function (child) {
+                child.locked = true;
+                child.selected = false;
+            });
+            var $layer = $(this.svgDrawPaper.project.layers['draw'].exportSVG({ matchShapes: true }));
+            $layer_svg.append($layer);
+            payload = {
+                'name': layer_name,
+                'layer_svg': $layer_svg[0].outerHTML
+            };
+            // 2) fire event with layer svg coordinates and the layer it's being copied to
+            this._emit(SvgDrawComponent.Events.SNAPSHOTCOMPLETED, payload);
+        };
         SvgDrawComponent.prototype.pathCompleted = function (shape) {
             var payload = {};
             var media_fragment_coords = null;
@@ -339,6 +381,8 @@ var IIIFComponents;
         };
         SvgDrawComponent.prototype.addLayersToolbar = function () {
             var _this = this;
+            //var singleDrawLayer = this.options.toolbars.layers.singleDrawLayer;
+            //var markup = '';
             var layers = this.options.toolbars.layers.presets.map(function (layer) {
                 var isActive = '', isVisible = '', isLocked = '', tmp;
                 tmp = _this.addLayer(layer.name);
@@ -380,6 +424,9 @@ var IIIFComponents;
                         break;
                     case 'lock_btn':
                         _this.svgDrawPaper.project.layers[target.name].locked = !_this.svgDrawPaper.project.layers[target.name].locked;
+                        break;
+                    case 'camera_btn':
+                        _this.takeSnapshot(target.name);
                         break;
                 }
             });
@@ -470,8 +517,9 @@ var IIIFComponents;
             this.svgDrawPaper.project.activeLayer.name = 'bg';
             var bgLayer = this.svgDrawPaper.project.activeLayer;
             bgLayer.locked = true;
-            var drawLayer = new this.svgDrawPaper.Layer();
-            drawLayer.name = 'drawlayer';
+            var drawLayer = this.addLayer('draw');
+            drawLayer.bringToFront();
+            drawLayer.activate();
             ////// S E L E C T   T O O L ////////////
             this.svgDrawPaper.selectTool = new this.svgDrawPaper.Tool();
             this.svgDrawPaper.selectTool.onMouseDown = function (event) {
@@ -611,6 +659,7 @@ var IIIFComponents;
             Events.SHAPEUPDATED = 'shapeUpdated';
             Events.SHAPEDELETED = 'shapeDeleted';
             Events.SVGLOADED = 'svgLoaded';
+            Events.SNAPSHOTCOMPLETED = 'snapshotCompleted';
             return Events;
         }());
         SvgDrawComponent.Events = Events;

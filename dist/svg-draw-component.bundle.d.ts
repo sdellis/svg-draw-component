@@ -147,6 +147,7 @@ declare namespace IIIFComponents {
         constructor(options: ISvgDrawComponentOptions);
         protected _init(): boolean;
         debug(): void;
+        takeSnapshot(layer_name: any): void;
         pathCompleted(shape: any): void;
         pathUpdated(shape: any): void;
         pathDeleted(name: any, layer: any): void;
@@ -167,5 +168,6 @@ declare namespace IIIFComponents.SvgDrawComponent {
         static SHAPEUPDATED: string;
         static SHAPEDELETED: string;
         static SVGLOADED: string;
+        static SNAPSHOTCOMPLETED: string;
     }
 }

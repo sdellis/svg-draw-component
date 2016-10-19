@@ -114,6 +114,7 @@
                   },
                   layers: {
                       show: true,
+                      singleDrawLayer: true,
                       presets: []
                   },
               }
@@ -129,6 +130,10 @@
                 $( ".event-set" ).append(events);
                 $( ".events" ).addClass( "events-flash" );
             };
+
+            svgdraw.on('snapshotCompleted', function(args) {
+                displayEvents('snapshotCompleted',args);
+            });
 
             svgdraw.on('shapeCompleted', function(args) {
                 displayEvents('shapeCompleted',args);
