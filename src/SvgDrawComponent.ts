@@ -76,8 +76,30 @@ namespace IIIFComponents {
             this._emit(SvgDrawComponent.Events.DEBUG, this.options.subjectType);
         }
 
-        public pathCompleted(shape): void {
+        public takeSnapshot(layer_name): void {
             var payload = {}
+            var $layer_svg = $( "<svg xmlns='http://www.w3.org/2000/svg'/>" );
+            // 1) copy all layer children from draw layer to this layer and lock all children
+            this.svgDrawPaper.project.layers[layer_name].copyContent(this.svgDrawPaper.project.layers['draw']);
+            var children = this.svgDrawPaper.project.layers[layer_name].children.map(function(child) {
+                child.locked = true;
+                child.selected = false;
+            });
+
+            var $layer = $(this.svgDrawPaper.project.layers['draw'].exportSVG({matchShapes:true}) );
+            $layer_svg.append($layer);
+
+            payload = {
+                  'name': layer_name,
+                  'layer_svg': $layer_svg[0].outerHTML
+            }
+
+            // 2) fire event with layer svg coordinates and the layer it's being copied to
+            this._emit(SvgDrawComponent.Events.SNAPSHOTCOMPLETED, payload);
+        }
+
+        public pathCompleted(shape): void {
+            var payload = {};
             var media_fragment_coords = null;
             var $svg = $( "<svg xmlns='http://www.w3.org/2000/svg'/>" );
             var $layer_svg = $( "<svg xmlns='http://www.w3.org/2000/svg'/>" );
@@ -154,7 +176,8 @@ namespace IIIFComponents {
 
         public addLayersToolbar(): void {
           var _this = this;
-
+          //var singleDrawLayer = this.options.toolbars.layers.singleDrawLayer;
+          //var markup = '';
           var layers = this.options.toolbars.layers.presets.map(function(layer) {
               var isActive = '', isVisible = '', isLocked = '', tmp;
 
@@ -198,6 +221,9 @@ namespace IIIFComponents {
                   break;
               case 'lock_btn':
                   _this.svgDrawPaper.project.layers[target.name].locked = !_this.svgDrawPaper.project.layers[target.name].locked;
+                  break;
+              case 'camera_btn':
+                  _this.takeSnapshot(target.name);
                   break;
             }
           });
@@ -303,8 +329,10 @@ namespace IIIFComponents {
               this.svgDrawPaper.project.activeLayer.name = 'bg';
               var bgLayer = this.svgDrawPaper.project.activeLayer;
               bgLayer.locked = true;
-              var drawLayer = new this.svgDrawPaper.Layer();
-              drawLayer.name = 'drawlayer';
+
+              var drawLayer = this.addLayer('draw');
+              drawLayer.bringToFront();
+              drawLayer.activate();
 
               ////// S E L E C T   T O O L ////////////
               this.svgDrawPaper.selectTool = new this.svgDrawPaper.Tool();
@@ -463,6 +491,7 @@ namespace IIIFComponents.SvgDrawComponent {
         static SHAPEUPDATED: string = 'shapeUpdated';
         static SHAPEDELETED: string = 'shapeDeleted';
         static SVGLOADED: string = 'svgLoaded';
+        static SNAPSHOTCOMPLETED: string = 'snapshotCompleted';
     }
 }
 
