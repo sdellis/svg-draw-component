@@ -99,7 +99,7 @@ namespace IIIFComponents {
         }
 
         public pathCompleted(shape): void {
-            var payload = {}
+            var payload = {};
             var media_fragment_coords = null;
             var $svg = $( "<svg xmlns='http://www.w3.org/2000/svg'/>" );
             var $layer_svg = $( "<svg xmlns='http://www.w3.org/2000/svg'/>" );

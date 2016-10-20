@@ -23,7 +23,11 @@ var IIIFComponents;
                 svgDrawPaper.view.viewSize.width = c.width;
                 svgDrawPaper.view.viewSize.height = c.height;
                 function rasterLoaded(raster, i) {
-                    var layer = new svgDrawPaper.Layer({ 'name': 'frame_' + i, insert: false });
+                    function paddy(n, p) {
+                        var pad = new Array(1 + p).join('0');
+                        return (pad + n).slice(-pad.length);
+                    }
+                    var layer = new svgDrawPaper.Layer({ 'name': 'frame_' + paddy(i, 3), insert: false });
                     var $layerTool;
                     svgDrawPaper.project.addLayer(layer);
                     layer.addChild(raster);

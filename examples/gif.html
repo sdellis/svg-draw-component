@@ -26,8 +26,16 @@
           padding: 5vw;
         }
 
+      .fill {
+          width:40%;
+          min-height:300px;
+          display:inline-block;
+          padding:10px;
+          margin: 10px;
+      }
       .events {
-          width: 600px;
+          width: 100%;
+          height: 100%;
           min-height: 200px;
           background-color: #eee;
           padding: 10px;
@@ -86,13 +94,15 @@
     <div id="svgdraw"></div>
 
     <img id="subject" style="display:none;" src="img/horse.gif"/>
-    <button id="loadSVG">loadSVG</button>
+    <button id="exportCode">Export Code</button>
 
-    <div class="event-set" style="margin-top:50px;"/>
+    <div class="event-set" style="margin-top:50px;height:100%;width:100%;"/>
 
     <script type="text/javascript">
 
         var svgdraw;
+        var animation_frames = [];
+        var svg = '';
 
         $(function() {
 
@@ -124,15 +134,27 @@
                 $( ".event-set" ).empty();
                 var events = $( '<div class="events"/>' );
                 events.append("<h2>" + eventName + "</h2>");
-                var pre = $( "<pre/>" );
-                pre.text(JSON.stringify(args, undefined, 2));
-                events.append(pre);
+                var pre = $( "<pre />" );
+                var ta1 = $( "<textarea class='fill' />" );
+                var ta2 = $( "<textarea class='fill' />" );
+                var $svg = $(args);
+                if (typeof args.js == 'undefined'){
+                    pre.text(JSON.stringify(args, undefined, 2));
+                    events.append(pre);
+                }else{
+                    ta1.text(args.svg);
+                    ta2.text(args.js);
+                    events.append(ta1);
+                    events.append(ta2);
+                }
+
                 $( ".event-set" ).append(events);
                 $( ".events" ).addClass( "events-flash" );
             };
 
             svgdraw.on('snapshotCompleted', function(args) {
                 displayEvents('snapshotCompleted',args);
+                animation_frames[args[0].name] = args[0].layer_svg;
             });
 
             svgdraw.on('shapeCompleted', function(args) {
@@ -147,16 +169,77 @@
                 displayEvents('shapeDeleted',args);
             });
 
-            svgdraw.on('svgLoaded', function(args) {
-                displayEvents('svgLoaded',args);
-            });
+            function keys(obj) {
+                var keys = [];
 
-            function loadSVG(){
-                svgdraw.importSVG('<svg xmlns="http://www.w3.org/2000/svg"><rect x="20" y="20" width="71" height="103" fill="#ffffff" fill-rule="nonzero" stroke="#ff0000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" opacity="0.5" style="mix-blend-mode: normal"></rect></svg>');
+                for(var key in obj)
+                {
+                    if(obj.hasOwnProperty(key))
+                    {
+                        keys.push(key);
+                    }
+                }
+
+                return keys;
+            }
+
+            function exportCode(){
+                var payload = {};
+                var ordered_frames = [];
+                var order = keys(animation_frames).sort();
+                var order_length = order.length;
+                for (i = 0; i < order_length; i++) {
+                    ordered_frames[order[i]] = $(animation_frames[order[i]]);
+                }
+
+                var svg_comment = '<!-- Copy and paste this SVG code into the "PASTE YOUR SVG HERE" section of the HTML panel of the CodePen template -->\n\n';
+                var $svg = ordered_frames[order[0]];
+
+                //export the code
+                // get shape ids from initial frame and construct Greensock vars
+                var js = '// Copy and paste this JS code into the "// PASTE YOUR JAVASCRIPT HERE" section of the JavaScript panel of the CodePen template\n\n';
+                var vars = [];
+                var ids = [];
+                var $elems = $svg.children();
+                $elems.children().each(function( index ) {
+                  vars.push('var ' + this.id + ' = $("#' + this.id + '");');
+                  ids.push(this.id);
+                  //vars.push('var ' + $(this).attr('id') + ';');
+                  // console.log( index + ": " + $( this ).text() );
+                });
+                js += vars.join('\n');
+
+                // for each of the ids, get the cx and cy values for each frame in the ordered array
+                js +='\nt1.';
+                var transitions = [];
+
+                // loop over ordered array of frames
+                for (i = 0; i < order_length; i++) {
+                    var cur_id, cur_cx, cur_cy;
+                    var g = ordered_frames[order[i]].children();
+                    // loop over the contents to get dot coordinates
+                    g.children().each(function( index ) {
+                      cur_id = this.id;
+                    //   cur_cx = Math.ceil(Number($(this).attr('cx')));
+                    //   cur_cy = Math.ceil(Number($(this).attr('cy')));
+                    cur_cx = $(this).attr('cx');
+                    cur_cy = $(this).attr('cy');
+                      transitions.push('to('+ cur_id +', 0.5, {attr:{cx:' + cur_cx + ', cy:' + cur_cy + '}}, "' + order[i] + '")');
+                    });
+                }
+
+                js += transitions.join('\n.');
+
+                payload = {
+                      'svg': svg_comment + $svg.html(),
+                      'js': js
+                  }
+
+                displayEvents('svgExported',payload);
                 return false;
             }
 
-            $( "#loadSVG" ).on( "click", loadSVG );
+            $( "#exportCode" ).on( "click", exportCode );
 
         });
 
