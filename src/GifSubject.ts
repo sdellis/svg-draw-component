@@ -47,16 +47,14 @@ namespace IIIFComponents {
                    raster.locked = true;
 
                    if(i > 0){
-                       $layerTool = '<li id="'+ layer.name +'" class="tool-btn"><input id="'+ layer.name +'-eye_btn" class="eye_btn" aria-label="Layer Visibility Toggle" type="checkbox" name="'+ layer.name +'"><label for="'+ layer.name +'-eye_btn"> <i class="fa fa-fw fa-eye" aria-hidden="true" title="Toggle layer visibility?"></i></label>' +
-                       '<input id="'+ layer.name +'-lock_btn" class="lock_btn" aria-label="Lock Layer Toggle" type="checkbox" name="'+ layer.name +'"><label for="'+ layer.name +'-lock_btn"><i class="fa fa-fw fa-lock" aria-hidden="true" title="Toggle layer lock?"></i></label>';
+                       $layerTool = '<li id="'+ layer.name +'" class="tool-btn"><input id="'+ layer.name +'-eye_btn" class="eye_btn" aria-label="Layer Visibility Toggle" type="checkbox" name="'+ layer.name +'"><label for="'+ layer.name +'-eye_btn"> <i class="fa fa-fw fa-eye" aria-hidden="true" title="Toggle layer visibility?"></i></label>';
                        if(singleDrawLayer){
                            $layerTool += '<input id="'+ layer.name +'-camera_btn" class="camera_btn" aria-label="Take Snapshot of Drawing Layer" type="checkbox" name="'+ layer.name +'"><label for="'+ layer.name +'-camera_btn"><i class="fa fa-fw fa-camera" aria-hidden="true" title="Snapshot Drawing to Frame"></i></label>';
                        }
                        $layerTool += '<span>'+ layer.name +'</span></li>';
                        layer.visible = false;
                    } else {
-                       $layerTool = '<li id="'+ layer.name +'" class="tool-btn selected"><input id="'+ layer.name +'-eye_btn" class="eye_btn" aria-label="Layer Visibility Toggle" type="checkbox" name="'+ layer.name +'" checked><label for="'+ layer.name +'-eye_btn"> <i class="fa fa-fw fa-eye" aria-hidden="true" title="Toggle layer visibility?"></i></label>' +
-                       '<input id="'+ layer.name +'-lock_btn" class="lock_btn" aria-label="Lock Layer Toggle" type="checkbox" name="'+ layer.name +'"><label for="'+ layer.name +'-lock_btn"><i class="fa fa-fw fa-lock" aria-hidden="true" title="Toggle layer lock?"></i></label>';
+                       $layerTool = '<li id="'+ layer.name +'" class="tool-btn selected"><input id="'+ layer.name +'-eye_btn" class="eye_btn" aria-label="Layer Visibility Toggle" type="checkbox" name="'+ layer.name +'" checked><label for="'+ layer.name +'-eye_btn"> <i class="fa fa-fw fa-eye" aria-hidden="true" title="Toggle layer visibility?"></i></label>';
                        if(singleDrawLayer){
                            $layerTool += '<input id="'+ layer.name +'-camera_btn" class="camera_btn" aria-label="Take Snapshot of Drawing Layer" type="checkbox" name="'+ layer.name +'"><label for="'+ layer.name +'-camera_btn"><i class="fa fa-fw fa-camera" aria-hidden="true" title="Snapshot Drawing to Frame"></i></label>';
                        }
